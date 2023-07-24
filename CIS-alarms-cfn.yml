@@ -24,7 +24,7 @@ Resources:
       AlarmName: CIS-Unauthorized Activity Attempt
       AlarmDescription: Alarm if Multiple unauthorized actions or logins attempted
       MetricName: UnauthorizedAttemptCount
-      Namespace: CloudTrailMetrics
+      Namespace: LogMetrics
       Statistic: Sum
       Period: 300
       EvaluationPeriods: 1
@@ -44,7 +44,8 @@ Resources:
         }
       MetricTransformations:
       - MetricValue: '1'
-        MetricNamespace: CloudTrailMetrics
+        DefaultValue: '0'
+        MetricNamespace: LogMetrics
         MetricName: UnauthorizedAttemptCount
   UnauthorizedApiCallsQuery:
     Type: AWS::Logs::QueryDefinition
@@ -66,7 +67,7 @@ Resources:
       AlarmName: CIS-Console Signin Without MFA
       AlarmDescription: Alarm if there is a Management Console sign-in without MFA
       MetricName: ConsoleSigninWithoutMFA
-      Namespace: CloudTrailMetrics
+      Namespace: LogMetrics
       Statistic: Sum
       Period: 300
       EvaluationPeriods: 1
@@ -81,12 +82,15 @@ Resources:
       LogGroupName: !Ref CloudtrailLogGroupName
       FilterPattern: |-
         {
-          ($.eventName = "ConsoleLogin") &&
-          ($.additionalEventData.MFAUsed != "Yes")
+          ($.eventName = "ConsoleLogin") && 
+          ($.additionalEventData.MFAUsed != "Yes") && 
+          ($.userIdentity.type = "IAMUser") && 
+          ($.responseElements.ConsoleLogin = "Success")
         }
       MetricTransformations:
       - MetricValue: '1'
-        MetricNamespace: CloudTrailMetrics
+        DefaultValue: '0'
+        MetricNamespace: LogMetrics
         MetricName: ConsoleSigninWithoutMFA
   NoMfaConsoleLoginsQuery:
     Type: AWS::Logs::QueryDefinition
@@ -111,7 +115,7 @@ Resources:
       AlarmName: CIS-Root Activity
       AlarmDescription: Alarm if a 'root' user uses the account
       MetricName: RootUserEventCount
-      Namespace: CloudTrailMetrics
+      Namespace: LogMetrics
       Statistic: Sum
       Period: 300
       EvaluationPeriods: 1
@@ -132,7 +136,8 @@ Resources:
         }
       MetricTransformations:
       - MetricValue: '1'
-        MetricNamespace: CloudTrailMetrics
+        DefaultValue: '0'
+        MetricNamespace: LogMetrics
         MetricName: RootUserEventCount
   RootAccountLoginsQuery:
     Type: AWS::Logs::QueryDefinition
@@ -154,7 +159,7 @@ Resources:
       AlarmName: CIS-IAM Policy Changes
       AlarmDescription: Alarm if an IAM policy changes
       MetricName: IAMPolicyChangeEventCount
-      Namespace: CloudTrailMetrics
+      Namespace: LogMetrics
       Statistic: Sum
       Period: 300
       EvaluationPeriods: 1
@@ -169,26 +174,28 @@ Resources:
       LogGroupName: !Ref CloudtrailLogGroupName
       FilterPattern: |-
         {
-          ($.eventName=DeleteGroupPolicy) ||
-          ($.eventName=DeleteRolePolicy) ||
-          ($.eventName=DeleteUserPolicy) ||
-          ($.eventName=PutGroupPolicy) ||
-          ($.eventName=PutRolePolicy) ||
-          ($.eventName=PutUserPolicy) ||
-          ($.eventName=CreatePolicy) ||
-          ($.eventName=DeletePolicy) ||
-          ($.eventName=CreatePolicyVersion) ||
-          ($.eventName=DeletePolicyVersion) ||
-          ($.eventName=AttachRolePolicy) ||
-          ($.eventName=DetachRolePolicy) ||
-          ($.eventName=AttachUserPolicy) ||
-          ($.eventName=DetachUserPolicy) ||
-          ($.eventName=AttachGroupPolicy) ||
-          ($.eventName=DetachGroupPolicy)
+          ($.eventSource=iam.amazonaws.com) && 
+            (($.eventName=DeleteGroupPolicy) || 
+            ($.eventName=DeleteRolePolicy) || 
+            ($.eventName=DeleteUserPolicy) || 
+            ($.eventName=PutGroupPolicy) || 
+            ($.eventName=PutRolePolicy) || 
+            ($.eventName=PutUserPolicy) || 
+            ($.eventName=CreatePolicy) || 
+            ($.eventName=DeletePolicy) || 
+            ($.eventName=CreatePolicyVersion) || 
+            ($.eventName=DeletePolicyVersion) || 
+            ($.eventName=AttachRolePolicy) || 
+            ($.eventName=DetachRolePolicy) || 
+            ($.eventName=AttachUserPolicy) || 
+            ($.eventName=DetachUserPolicy) || 
+            ($.eventName=AttachGroupPolicy) || 
+            ($.eventName=DetachGroupPolicy))
         }
       MetricTransformations:
       - MetricValue: '1'
-        MetricNamespace: CloudTrailMetrics
+        DefaultValue: '0'
+        MetricNamespace: LogMetrics
         MetricName: IAMPolicyChangeEventCount
   IAMPolicyChangesQuery:
     Type: AWS::Logs::QueryDefinition
@@ -210,7 +217,7 @@ Resources:
       AlarmName: CIS-Cloudtrail Config Changes
       AlarmDescription: Alarm if the configuration for Cloudtrail changes
       MetricName: CloudtrailConfigChangeEventCount
-      Namespace: CloudTrailMetrics
+      Namespace: LogMetrics
       Statistic: Sum
       Period: 300
       EvaluationPeriods: 1
@@ -233,7 +240,8 @@ Resources:
         }
       MetricTransformations:
       - MetricValue: '1'
-        MetricNamespace: CloudTrailMetrics
+        DefaultValue: '0'
+        MetricNamespace: LogMetrics
         MetricName: CloudtrailConfigChangeEventCount
   CloudtrailConfigChangesQuery:
     Type: AWS::Logs::QueryDefinition
@@ -257,7 +265,7 @@ Resources:
       AlarmName: CIS-Console Login Failures
       AlarmDescription: Alarm if there are AWS Management Console authentication failures
       MetricName: ConsoleLoginFailures
-      Namespace: CloudTrailMetrics
+      Namespace: LogMetrics
       Statistic: Sum
       Period: 300
       EvaluationPeriods: 1
@@ -277,7 +285,8 @@ Resources:
         }
       MetricTransformations:
       - MetricValue: '1'
-        MetricNamespace: CloudTrailMetrics
+        DefaultValue: '0'
+        MetricNamespace: LogMetrics
         MetricName: ConsoleLoginFailures
   FailedConsoleLoginsQuery:
     Type: AWS::Logs::QueryDefinition
@@ -302,7 +311,7 @@ Resources:
       AlarmDescription: Alarm if customer created CMKs get disabled or scheduled for
         deletion
       MetricName: KMSCustomerKeyDeletion
-      Namespace: CloudTrailMetrics
+      Namespace: LogMetrics
       Statistic: Sum
       Period: 60
       EvaluationPeriods: 1
@@ -322,7 +331,8 @@ Resources:
         }
       MetricTransformations:
       - MetricValue: '1'
-        MetricNamespace: CloudTrailMetrics
+        DefaultValue: '0'
+        MetricNamespace: LogMetrics
         MetricName: KMSCustomerKeyDeletion
   DisabledOrDeletedCmksQuery:
     Type: AWS::Logs::QueryDefinition
@@ -344,7 +354,7 @@ Resources:
       AlarmName: CIS-S3 Bucket Policy Changed
       AlarmDescription: Alarm if any S3 bucket policies are changed
       MetricName: S3BucketPolicyChanges
-      Namespace: CloudTrailMetrics
+      Namespace: LogMetrics
       Statistic: Sum
       Period: 300
       EvaluationPeriods: 1
@@ -372,7 +382,8 @@ Resources:
         }
       MetricTransformations:
       - MetricValue: '1'
-        MetricNamespace: CloudTrailMetrics
+        DefaultValue: '0'
+        MetricNamespace: LogMetrics
         MetricName: S3BucketPolicyChanges
   S3BucketPolicyChangeQuery:
     Type: AWS::Logs::QueryDefinition
@@ -394,7 +405,7 @@ Resources:
       AlarmName: CIS-AWS Config Configuration has changed
       AlarmDescription: Alarm if the configuration for AWS Config changes
       MetricName: AWSConfigConfigurationChanges
-      Namespace: CloudTrailMetrics
+      Namespace: LogMetrics
       Statistic: Sum
       Period: 300
       EvaluationPeriods: 1
@@ -417,7 +428,8 @@ Resources:
         }
       MetricTransformations:
       - MetricValue: '1'
-        MetricNamespace: CloudTrailMetrics
+        DefaultValue: '0'
+        MetricNamespace: LogMetrics
         MetricName: AWSConfigConfigurationChanges
   AWSConfigConfigurationChangeQuery:
     Type: AWS::Logs::QueryDefinition
@@ -439,7 +451,7 @@ Resources:
       AlarmName: CIS-Security Groups Have Changed
       AlarmDescription: Alarm if there are any changes to security groups
       MetricName: SecurityGroupChanges
-      Namespace: CloudTrailMetrics
+      Namespace: LogMetrics
       Statistic: Sum
       Period: 300
       EvaluationPeriods: 1
@@ -463,7 +475,8 @@ Resources:
         }
       MetricTransformations:
       - MetricValue: '1'
-        MetricNamespace: CloudTrailMetrics
+        DefaultValue: '0'
+        MetricNamespace: LogMetrics
         MetricName: SecurityGroupChanges
   SecurityGroupChangeQuery:
     Type: AWS::Logs::QueryDefinition
@@ -485,7 +498,7 @@ Resources:
       AlarmName: CIS-NACLs Have Changed
       AlarmDescription: Alarm if there are any changes to Network ACLs (NACLs)
       MetricName: NACLChanges
-      Namespace: CloudTrailMetrics
+      Namespace: LogMetrics
       Statistic: Sum
       Period: 300
       EvaluationPeriods: 1
@@ -509,7 +522,8 @@ Resources:
         }
       MetricTransformations:
       - MetricValue: '1'
-        MetricNamespace: CloudTrailMetrics
+        DefaultValue: '0'
+        MetricNamespace: LogMetrics
         MetricName: NACLChanges
   NACLChangeQuery:
     Type: AWS::Logs::QueryDefinition
@@ -531,7 +545,7 @@ Resources:
       AlarmName: CIS-Network Gateways Have Changed
       AlarmDescription: Alarm if there are any changes to network gateways
       MetricName: NetworkGatewayChanges
-      Namespace: CloudTrailMetrics
+      Namespace: LogMetrics
       Statistic: Sum
       Period: 300
       EvaluationPeriods: 1
@@ -555,7 +569,8 @@ Resources:
         }
       MetricTransformations:
       - MetricValue: '1'
-        MetricNamespace: CloudTrailMetrics
+        DefaultValue: '0'
+        MetricNamespace: LogMetrics
         MetricName: NetworkGatewayChanges
   NetworkGatewayChangeQuery:
     Type: AWS::Logs::QueryDefinition
@@ -577,7 +592,7 @@ Resources:
       AlarmName: CIS-Route Tables Have Changed
       AlarmDescription: Alarm if there are any changes to route tables
       MetricName: RouteTableChanges
-      Namespace: CloudTrailMetrics
+      Namespace: LogMetrics
       Statistic: Sum
       Period: 300
       EvaluationPeriods: 1
@@ -592,17 +607,19 @@ Resources:
       LogGroupName: !Ref CloudtrailLogGroupName
       FilterPattern: |-
         {
-          ($.eventName = CreateRoute) || 
-          ($.eventName = CreateRouteTable) || 
-          ($.eventName = ReplaceRoute) || 
-          ($.eventName = ReplaceRouteTableAssociation) || 
-          ($.eventName = DeleteRouteTable) || 
-          ($.eventName = DeleteRoute) || 
-          ($.eventName = DisassociateRouteTable)
+          ($.eventSource=ec2.amazonaws.com) && 
+            (($.eventName=CreateRoute) || 
+            ($.eventName=CreateRouteTable) || 
+            ($.eventName=ReplaceRoute) || 
+            ($.eventName=ReplaceRouteTableAssociation) || 
+            ($.eventName=DeleteRouteTable) || 
+            ($.eventName=DeleteRoute) || 
+            ($.eventName=DisassociateRouteTable))
         }
       MetricTransformations:
       - MetricValue: '1'
-        MetricNamespace: CloudTrailMetrics
+        DefaultValue: '0'
+        MetricNamespace: LogMetrics
         MetricName: RouteTableChanges
   RouteTableChangeQuery:
     Type: AWS::Logs::QueryDefinition
@@ -624,7 +641,7 @@ Resources:
       AlarmName: CIS-VPC Has Changed
       AlarmDescription: Alarm if there are any changes to any VPCs
       MetricName: VPCChanges
-      Namespace: CloudTrailMetrics
+      Namespace: LogMetrics
       Statistic: Sum
       Period: 300
       EvaluationPeriods: 1
@@ -653,7 +670,8 @@ Resources:
         }
       MetricTransformations:
       - MetricValue: '1'
-        MetricNamespace: CloudTrailMetrics
+        DefaultValue: '0'
+        MetricNamespace: LogMetrics
         MetricName: VPCChanges
   VPCChangeQuery:
     Type: AWS::Logs::QueryDefinition
